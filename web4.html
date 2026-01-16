@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialHub</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fafafa; color: #262626; }
+        
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 350px; }
+        .login-logo { text-align: center; font-size: 42px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .input-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .app { display: none; }
+        .navbar { background: white; border-bottom: 1px solid #dbdbdb; padding: 12px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .navbar-content { max-width: 975px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 28px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
+        .search-bar { flex: 1; max-width: 300px; margin: 0 20px; position: relative; }
+        .search-bar input { width: 100%; padding: 8px 15px; border: 1px solid #dbdbdb; border-radius: 20px; font-size: 14px; background: #fafafa; }
+        .search-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-top: 8px; max-height: 400px; overflow-y: auto; display: none; z-index: 1000; }
+        .search-results.active { display: block; }
+        .search-item { padding: 8px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; }
+        .search-item:hover { background: #fafafa; }
+        .search-avatar { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+        .search-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .search-info { flex: 1; min-width: 0; }
+        .search-username { font-weight: 600; font-size: 14px; color: #262626; }
+        .search-fullname { font-size: 14px; color: #8e8e8e; }
+        .no-results { padding: 16px; text-align: center; color: #8e8e8e; font-size: 14px; }
+        .nav-icons { display: flex; gap: 20px; }
+        .nav-icon { cursor: pointer; }
+        .nav-icon svg { width: 24px; height: 24px; stroke: #262626; stroke-width: 2; fill: none; }
+        
+        .layout { display: grid; grid-template-columns: 250px 1fr 320px; gap: 30px; max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        .sidebar { background: white; border-radius: 12px; padding: 20px; height: fit-content; position: sticky; top: 80px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .sidebar-logo { font-size: 28px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; text-align: center; }
+        .nav-menu { list-style: none; }
+        .nav-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 15px; font-size: 16px; }
+        .nav-item:hover { background: #f0f0f0; }
+        .nav-item.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .nav-item svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
+        
+        .post { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .post-header { padding: 15px; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .post-username { font-weight: 600; font-size: 14px; }
+        .post-time { font-size: 12px; color: #8e8e8e; }
+        .post-image { width: 100%; height: 500px; object-fit: cover; }
+        .post-actions { padding: 15px; display: flex; gap: 15px; }
+        .action-btn { background: none; border: none; cursor: pointer; }
+        .action-btn svg { width: 24px; height: 24px; stroke: #262626; stroke-width: 2; fill: none; }
+        .action-btn.liked svg { fill: #ff3366; stroke: #ff3366; }
+        .post-likes { padding: 0 15px 10px; font-weight: 600; font-size: 14px; }
+        .post-caption { padding: 0 15px 10px; font-size: 14px; }
+        .add-comment { padding: 15px; border-top: 1px solid #efefef; display: flex; gap: 10px; }
+        .add-comment input { flex: 1; border: none; outline: none; font-size: 14px; }
+        .comment-btn { color: #667eea; font-weight: 600; background: none; border: none; cursor: pointer; }
+        
+        .profile-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .profile-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .profile-avatar { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; cursor: pointer; }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .stats { display: flex; justify-content: space-around; padding-top: 15px; border-top: 1px solid #efefef; text-align: center; }
+        
+        .suggestions { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .suggestion-item { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .suggestion-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; }
+        .suggestion-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .follow-btn { background: #667eea; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .follow-btn.following { background: #efefef; color: #262626; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 16px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #efefef; display: flex; justify-content: space-between; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; }
+        .modal-body { padding: 20px; }
+        .upload-area { border: 2px dashed #dbdbdb; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 20px; }
+        .upload-area:hover { border-color: #667eea; background: #f9f9ff; }
+        .upload-area svg { width: 60px; height: 60px; stroke: #8e8e8e; stroke-width: 2; fill: none; margin-bottom: 15px; }
+        .preview { width: 100%; max-height: 400px; object-fit: contain; border-radius: 12px; margin-bottom: 20px; }
+        .caption-input { width: 100%; min-height: 100px; padding: 15px; border: 1px solid #dbdbdb; border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; margin-bottom: 20px; }
+        
+        .profile-page { display: none; max-width: 975px; margin: 30px auto; padding: 0 20px; }
+        .profile-header { background: white; border-radius: 12px; padding: 40px; margin-bottom: 30px; display: flex; gap: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .profile-pic-large { width: 150px; height: 150px; border-radius: 50%; overflow: hidden; }
+        .profile-pic-large img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-meta { flex: 1; }
+        .profile-meta h2 { font-size: 28px; margin-bottom: 20px; }
+        .stats-large { display: flex; gap: 40px; margin-bottom: 20px; font-size: 16px; }
+        .edit-btn { padding: 8px 24px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 15px; }
+        .posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .grid-post { aspect-ratio: 1; background: #f0f0f0; border-radius: 8px; overflow: hidden; cursor: pointer; }
+        .grid-post img { width: 100%; height: 100%; object-fit: cover; }
+        
+        @media (max-width: 1200px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar, .right-sidebar { display: none; }
+            .posts-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <div class="login-logo">SocialHub</div>
+            <div class="input-group"><input type="text" id="loginUsername" placeholder="Username"></div>
+            <div class="input-group"><input type="text" id="loginFullName" placeholder="Full Name"></div>
+            <div class="input-group"><input type="password" id="password" placeholder="Password"></div>
+            <button class="btn" onclick="handleLogin()">Log In</button>
+        </div>
+    </div>
+
+    <div class="app" id="app">
+        <nav class="navbar">
+            <div class="navbar-content">
+                <div class="logo" onclick="showFeed()">SocialHub</div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search..." oninput="handleSearch(this.value)" onfocus="showSearchResults()" onblur="hideSearchResults()">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+                <div class="nav-icons">
+                    <div class="nav-icon" onclick="showFeed()"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></div>
+                    <div class="nav-icon" onclick="showCreatePost()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></div>
+                    <div class="nav-icon" onclick="showProfile()"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg></div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="layout" id="feedPage">
+            <div class="sidebar">
+                <div class="sidebar-logo">SocialHub</div>
+                <ul class="nav-menu">
+                    <li class="nav-item active" onclick="showFeed()"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</li>
+                    <li class="nav-item" onclick="showProfile()"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>Profile</li>
+                    <li class="nav-item" onclick="showCreatePost()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>Create</li>
+                    <li class="nav-item" onclick="logout()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Logout</li>
+                </ul>
+            </div>
+
+            <div id="postsContainer"></div>
+
+            <div class="right-sidebar">
+                <div class="profile-card">
+                    <div class="profile-info">
+                        <div class="profile-avatar" onclick="showProfile()"><img id="sidebarPic" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150"></div>
+                        <div><h3 id="sidebarUser" style="font-size: 16px;">demo_user</h3><p id="sidebarName" style="font-size: 14px; color: #8e8e8e;">Demo User</p></div>
+                    </div>
+                    <div class="stats">
+                        <div><div style="font-weight: 600; font-size: 18px;" id="postsCount">7</div><div style="font-size: 12px; color: #8e8e8e;">Posts</div></div>
+                        <div><div style="font-weight: 600; font-size: 18px;">342</div><div style="font-size: 12px; color: #8e8e8e;">Followers</div></div>
+                        <div><div style="font-weight: 600; font-size: 18px;" id="followingCount">180</div><div style="font-size: 12px; color: #8e8e8e;">Following</div></div>
+                    </div>
+                </div>
+                <div class="suggestions">
+                    <h4 style="font-size: 14px; color: #8e8e8e; margin-bottom: 15px;">SUGGESTIONS FOR YOU</h4>
+                    <div id="suggestions"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-page" id="profilePage">
+            <div class="profile-header">
+                <div class="profile-pic-large"><img id="profilePic" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150"></div>
+                <div class="profile-meta">
+                    <h2 id="profileUser">demo_user</h2>
+                    <div class="stats-large">
+                        <div><strong id="profilePostsCount">7</strong> posts</div>
+                        <div><strong>342</strong> followers</div>
+                        <div><strong id="profileFollowingCount">180</strong> following</div>
+                    </div>
+                    <div style="color: #262626; line-height: 1.5;">📸 Photography enthusiast<br>🌍 Travel lover<br>☕ Coffee addict</div>
+                    <button class="edit-btn" onclick="showEditProfile()">Edit Profile</button>
+                </div>
+            </div>
+            <div class="posts-grid" id="postsGrid"></div>
+        </div>
+
+        <div class="modal" id="createModal">
+            <div class="modal-content">
+                <div class="modal-header"><h3>Create New Post</h3><button class="close-btn" onclick="closeCreate()">×</button></div>
+                <div class="modal-body">
+                    <input type="file" id="imgInput" accept="image/*" style="display: none;" onchange="handleImg(event)">
+                    <div class="upload-area" onclick="document.getElementById('imgInput').click()">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <div style="color: #8e8e8e; font-size: 14px;">Click to upload an image</div>
+                    </div>
+                    <img id="imgPreview" class="preview" style="display: none;">
+                    <textarea class="caption-input" id="caption" placeholder="Write a caption..."></textarea>
+                    <button class="btn" onclick="submitPost()" id="submitBtn" disabled>Share Post</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="editProfileModal">
+            <div class="modal-content">
+                <div class="modal-header"><h3>Edit Profile</h3><button class="close-btn" onclick="closeEditProfile()">×</button></div>
+                <div class="modal-body">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 30px;">
+                        <div class="profile-pic-large"><img id="editProfilePic" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150"></div>
+                        <input type="file" id="profilePicInput" accept="image/*" style="display: none;" onchange="handleProfilePic(event)">
+                        <button class="follow-btn" onclick="document.getElementById('profilePicInput').click()">Change Profile Picture</button>
+                    </div>
+                    <div class="input-group"><input type="text" id="editUsername" placeholder="Username"></div>
+                    <div class="input-group"><input type="text" id="editFullName" placeholder="Full Name"></div>
+                    <button class="btn" onclick="saveProfileChanges()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            user: { username: 'demo_user', fullName: 'Demo User', pic: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150' },
+            posts: [],
+            suggestions: [],
+            following: 180,
+            selectedImg: null,
+            allUsers: []
+        };
+
+        function handleLogin() {
+            const user = document.getElementById('loginUsername').value.trim();
+            const name = document.getElementById('loginFullName').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            
+            if (!user || !name || !pass) { 
+                alert('Please fill all fields!'); 
+                return; 
+            }
+            
+            data.user.username = user;
+            data.user.fullName = name;
+            
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            
+            initData();
+            updateProfile();
+            renderPosts();
+            renderSuggestions();
+        }
+
+        function initData() {
+            data.posts = [
+                { id: 1, username: 'alex_photos', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600', caption: 'Mountain views 🏔️', likes: 234, liked: false, time: '2 hours ago' },
+                { id: 2, username: 'foodie_sara', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600', caption: 'Pasta night 🍝', likes: 189, liked: false, time: '4 hours ago' },
+                { id: 3, username: 'urban_explorer', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150', image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600', caption: 'City lights 🌃', likes: 412, liked: false, time: '6 hours ago' }
+            ];
+            
+            data.suggestions = [
+                { username: 'emily_travels', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', mutual: '12 mutual friends', following: false },
+                { username: 'mike_fitness', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', mutual: '8 mutual friends', following: false }
+            ];
+
+            data.allUsers = [
+                { username: 'alex_photos', fullName: 'Alex Johnson', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' },
+                { username: 'foodie_sara', fullName: 'Sara Martinez', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150' },
+                { username: 'urban_explorer', fullName: 'Mike Chen', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150' },
+                { username: 'emily_travels', fullName: 'Emily Davis', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
+                { username: 'mike_fitness', fullName: 'Mike Wilson', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
+                { username: 'nature_walker', fullName: 'Chris Anderson', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
+                { username: 'beach_vibes', fullName: 'Jessica Lee', avatar: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=150' }
+            ];
+        }
+
+        function updateProfile() {
+            document.getElementById('sidebarUser').textContent = data.user.username;
+            document.getElementById('sidebarName').textContent = data.user.fullName;
+            document.getElementById('sidebarPic').src = data.user.pic;
+            document.getElementById('profileUser').textContent = data.user.username;
+            document.getElementById('profilePic').src = data.user.pic;
+            document.getElementById('postsCount').textContent = data.posts.length;
+            document.getElementById('profilePostsCount').textContent = data.posts.length;
+            document.getElementById('followingCount').textContent = data.following;
+            document.getElementById('profileFollowingCount').textContent = data.following;
+        }
+
+        function renderPosts() {
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = data.posts.map(post => `
+                <div class="post">
+                    <div class="post-header">
+                        <div class="avatar"><img src="${post.avatar}"></div>
+                        <div style="flex: 1;">
+                            <div class="post-username">${post.username}</div>
+                            <div class="post-time">${post.time}</div>
+                        </div>
+                    </div>
+                    <img src="${post.image}" class="post-image">
+                    <div class="post-actions">
+                        <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
+                            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        </button>
+                        <button class="action-btn">
+                            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        </button>
+                        <button class="action-btn">
+                            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </div>
+                    <div class="post-likes">${post.likes} likes</div>
+                    <div class="post-caption"><strong>${post.username}</strong> ${post.caption}</div>
+                    <div class="add-comment">
+                        <input type="text" placeholder="Add a comment...">
+                        <button class="comment-btn">Post</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSuggestions() {
+            const container = document.getElementById('suggestions');
+            container.innerHTML = data.suggestions.map((s, i) => `
+                <div class="suggestion-item">
+                    <div class="suggestion-avatar"><img src="${s.avatar}"></div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 14px;">${s.username}</div>
+                        <div style="font-size: 12px; color: #8e8e8e;">${s.mutual}</div>
+                    </div>
+                    <button class="follow-btn ${s.following ? 'following' : ''}" onclick="toggleFollow(${i})">
+                        ${s.following ? 'Following' : 'Follow'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function toggleLike(id) {
+            const post = data.posts.find(p => p.id === id);
+            post.liked = !post.liked;
+            post.likes += post.liked ? 1 : -1;
+            renderPosts();
+        }
+
+        function toggleFollow(index) {
+            data.suggestions[index].following = !data.suggestions[index].following;
+            data.following += data.suggestions[index].following ? 1 : -1;
+            updateProfile();
+            renderSuggestions();
+        }
+
+        function showFeed() {
+            document.getElementById('feedPage').style.display = 'grid';
+            document.getElementById('profilePage').style.display = 'none';
+        }
+
+        function showProfile() {
+            document.getElementById('feedPage').style.display = 'none';
+            document.getElementById('profilePage').style.display = 'block';
+            const grid = document.getElementById('postsGrid');
+            grid.innerHTML = data.posts.map(p => `
+                <div class="grid-post"><img src="${p.image}"></div>
+            `).join('');
+        }
+
+        function showCreatePost() {
+            document.getElementById('createModal').classList.add('active');
+        }
+
+        function closeCreate() {
+            document.getElementById('createModal').classList.remove('active');
+            document.getElementById('imgPreview').style.display = 'none';
+            document.getElementById('caption').value = '';
+            document.getElementById('submitBtn').disabled = true;
+            data.selectedImg = null;
+        }
+
+        function handleImg(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    data.selectedImg = event.target.result;
+                    document.getElementById('imgPreview').src = event.target.result;
+                    document.getElementById('imgPreview').style.display = 'block';
+                    document.getElementById('submitBtn').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function submitPost() {
+            const caption = document.getElementById('caption').value;
+            const newPost = {
+                id: data.posts.length + 1,
+                username: data.user.username,
+                avatar: data.user.pic,
+                image: data.selectedImg,
+                caption: caption,
+                likes: 0,
+                liked: false,
+                time: 'Just now'
+            };
+            data.posts.unshift(newPost);
+            renderPosts();
+            updateProfile();
+            closeCreate();
+        }
+
+        function logout() {
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginFullName').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function handleSearch(query) {
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!query.trim()) {
+                searchResults.innerHTML = '';
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            const filtered = data.allUsers.filter(user => 
+                user.username.toLowerCase().includes(query.toLowerCase()) ||
+                user.fullName.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                searchResults.innerHTML = '<div class="no-results">No results found</div>';
+            } else {
+                searchResults.innerHTML = filtered.map(user => `
+                    <div class="search-item" onmousedown="viewUserProfile('${user.username}')">
+                        <div class="search-avatar">
+                            <img src="${user.avatar}" alt="${user.username}">
+                        </div>
+                        <div class="search-info">
+                            <div class="search-username">${user.username}</div>
+                            <div class="search-fullname">${user.fullName}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            searchResults.classList.add('active');
+        }
+
+        function showSearchResults() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput.value.trim()) {
+                document.getElementById('searchResults').classList.add('active');
+            }
+        }
+
+        function hideSearchResults() {
+            setTimeout(() => {
+                document.getElementById('searchResults').classList.remove('active');
+            }, 200);
+        }
+
+        function viewUserProfile(username) {
+            const user = data.allUsers.find(u => u.username === username);
+            if (user) {
+                alert(`Viewing ${user.fullName}'s profile (@${user.username})`);
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').classList.remove('active');
+            }
+        }
+
+        function showEditProfile() {
+            document.getElementById('editProfileModal').classList.add('active');
+            document.getElementById('editProfilePic').src = data.user.pic;
+            document.getElementById('editUsername').value = data.user.username;
+            document.getElementById('editFullName').value = data.user.fullName;
+        }
+
+        function closeEditProfile() {
+            document.getElementById('editProfileModal').classList.remove('active');
+        }
+
+        function handleProfilePic(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('editProfilePic').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveProfileChanges() {
+            const newUsername = document.getElementById('editUsername').value.trim();
+            const newFullName = document.getElementById('editFullName').value.trim();
+            const newPic = document.getElementById('editProfilePic').src;
+
+            if (!newUsername || !newFullName) {
+                alert('Please fill all fields!');
+                return;
+            }
+
+            data.user.username = newUsername;
+            data.user.fullName = newFullName;
+            data.user.pic = newPic;
+
+            updateProfile();
+            closeEditProfile();
+            alert('Profile updated successfully!');
+        }
+    </script>
+</body>
+</html>
